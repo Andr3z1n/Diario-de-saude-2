@@ -1,37 +1,65 @@
-import { useState, useEffect } from 'react'
+import { useEffect, useState } from 'react'
 
+// Meta diária de consumo de água (em ml)
 const META = 2000
 
+// Chave usada para salvar no localStorage
+const STORAGE_KEY = 'agua_hoje'
+
+// Componente que controla o consumo de água diário
 export default function WaterTracker() {
+  // Estado que guarda quantos ml de água foram consumidos
   const [agua, setAgua] = useState(0)
-  const hoje = new Date().toISOString().slice(0,10)
 
+  // Ao carregar o componente, busca valor salvo no navegador
   useEffect(() => {
-    const v = localStorage.getItem(`agua_${hoje}`)
-    if (v) setAgua(+v)
-  }, [hoje])
+    const saved = localStorage.getItem(STORAGE_KEY)
+    if (saved) setAgua(Number(saved)) // converte de string para número
+  }, [])
 
+  // Sempre que "agua" mudar, salva automaticamente no localStorage
   useEffect(() => {
-    localStorage.setItem(`agua_${hoje}`, agua)
-  }, [agua, hoje])
+    localStorage.setItem(STORAGE_KEY, String(agua))
+  }, [agua])
 
+  // Calcula porcentagem de progresso em relação à meta
   const pct = Math.min(100, Math.round((agua / META) * 100))
-  const cor = pct < 50 ? '#1e88e5' : pct < 100 ? '#43a047' : '#f57f17'
 
   return (
-    <div style={{marginBottom:20}}>
-      <h2>Água💧</h2>
-      <p>{agua} / {META} ml</p>
-      <div style={{background:'#e6eef6',height:28,borderRadius:12,overflow:'hidden'}}>
-        <div style={{width:`${pct}%`,height:'100%',background:cor,transition:'width .3s',display:'flex',alignItems:'center',justifyContent:'center',color:'#fff',fontWeight:700}}>
-          {pct}%
-        </div>
+    <section className="tracker-card">
+
+      {/* Título do card */}
+      <h3>Água</h3>
+
+      {/* Mostra quantidade atual e meta */}
+      <p>{agua}ml / {META}ml</p>
+
+      {/* Barra visual de progresso */}
+      <div className="progress-bar">
+        <div
+          className="progress-fill"
+          style={{ width: `${pct}%` }}
+        />
       </div>
-      <div style={{marginTop:10,gap:8,display:'flex'}}>
-        <button onClick={()=>setAgua(a=>a+250)}>+250</button>
-        <button onClick={()=>setAgua(a=>a+500)}>+500</button>
-        <button onClick={()=>setAgua(0)}>Reset</button>
+
+      {/* Botões para adicionar água */}
+      <div className="tracker-actions">
+
+        {/* Adiciona 250ml sem ultrapassar a meta */}
+        <button onClick={() => setAgua((v) => Math.min(META, v + 250))}>
+          +250ml
+        </button>
+
+        {/* Adiciona 500ml sem ultrapassar a meta */}
+        <button onClick={() => setAgua((v) => Math.min(META, v + 500))}>
+          +500ml
+        </button>
+
+        {/* Reseta o contador de água */}
+        <button onClick={() => setAgua(0)}>
+          Resetar
+        </button>
       </div>
-    </div>
+    </section>
   )
 }

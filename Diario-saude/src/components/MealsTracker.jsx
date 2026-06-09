@@ -1,29 +1,60 @@
-import { useState, useEffect } from 'react'
+import { useEffect, useState } from 'react'
 
-const META = 5
+// Meta diária de refeições
+const META = 4
 
+// Chave usada para salvar no localStorage
+const STORAGE_KEY = 'refeicoes_hoje'
+
+// Componente que controla o tracker de refeições
 export default function MealsTracker() {
-  const [n, setN] = useState(0)
-  const hoje = new Date().toISOString().slice(0,10)
+  // Estado que guarda quantas refeições foram feitas
+  const [refeicoes, setRefeicoes] = useState(0)
 
+  // Quando o componente carrega, busca dados salvos no navegador
   useEffect(() => {
-    const v = localStorage.getItem(`refeicoes_${hoje}`)
-    if (v) setN(+v)
-  }, [hoje])
+    const saved = localStorage.getItem(STORAGE_KEY)
+    if (saved) setRefeicoes(Number(saved)) // converte string para número
+  }, [])
 
+  // Sempre que "refeicoes" mudar, salva no localStorage
   useEffect(() => {
-    localStorage.setItem(`refeicoes_${hoje}`, n)
-  }, [n, hoje])
+    localStorage.setItem(STORAGE_KEY, String(refeicoes))
+  }, [refeicoes])
+
+  // Calcula porcentagem de progresso em relação à meta
+  const pct = Math.min(100, Math.round((refeicoes / META) * 100))
 
   return (
-    <div style={{marginBottom:20}}>
-      <h2>Refeições🍽️</h2>
-      <p>{n} / {META} refeições</p>
-      <div style={{marginTop:10,gap:8,display:'flex'}}>
-        <button onClick={()=>setN(n=>Math.min(META,n+1))}>+1</button>
-        <button onClick={()=>setN(n=>Math.max(0,n-1))}>-1</button>
-        <button onClick={()=>setN(0)}>Reset</button>
+    <section className="tracker-card">
+
+      {/* Título do componente */}
+      <h3>Refeições</h3>
+
+      {/* Mostra progresso atual */}
+      <p>{refeicoes} / {META}</p>
+
+      {/* Barra de progresso visual */}
+      <div className="progress-bar">
+        <div
+          className="progress-fill"
+          style={{ width: `${pct}%` }}
+        />
       </div>
-    </div>
+
+      {/* Botões de controle */}
+      <div className="tracker-actions">
+
+        {/* Adiciona +1 refeição (limitado pela meta) */}
+        <button onClick={() => setRefeicoes((v) => Math.min(META, v + 1))}>
+          +1 refeição
+        </button>
+
+        {/* Reseta contador para 0 */}
+        <button onClick={() => setRefeicoes(0)}>
+          Resetar
+        </button>
+      </div>
+    </section>
   )
 }
